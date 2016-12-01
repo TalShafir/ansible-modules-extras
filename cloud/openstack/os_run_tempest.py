@@ -40,8 +40,6 @@ def main():
     if module.params['virtualenv'] != "/usr":
         activate_virtual_environment(module.params['virtualenv'])
 
-    # TODO: check which is better to run tempest, the function or the module.run_command
-
     tempest_path = os.path.abspath(os.path.expanduser(module.params['virtualenv'] + '/bin/tempest'))
 
     command = tempest_path + ' run'
@@ -62,9 +60,9 @@ def main():
         module.fail_json(msg=msg, changed=True, stdout=stdout, stderr=stderr)
 
 
-def activate_virtual_environment(enviroment_path):
+def activate_virtual_environment(environment_path): # TODO: document
     activation_script_suffix = '/bin/activate_this.py'
-    activate_venv = enviroment_path + activation_script_suffix
+    activate_venv = environment_path + activation_script_suffix
     execfile(activate_venv, dict(__file__=activate_venv))
 
 
