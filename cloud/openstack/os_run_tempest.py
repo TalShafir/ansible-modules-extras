@@ -44,7 +44,6 @@ def main():
 
     command = tempest_path + ' run'
     if module.params['workspace']:
-        # command += ' --workspace ' + os.path.abspath(os.path.expanduser(module.params['workspace']))
         command += ' --workspace ' + module.params['workspace']
     else:
         module.fail_json(msg='missing workspace argument')
@@ -60,7 +59,12 @@ def main():
         module.fail_json(msg=msg, changed=True, stdout=stdout, stderr=stderr)
 
 
-def activate_virtual_environment(environment_path): # TODO: document
+def activate_virtual_environment(environment_path):
+    """
+        Activate the python virtual environment in the given path
+        :param environment_path: A path to the python virtual environment
+        :type environment_path: str
+        """
     activation_script_suffix = '/bin/activate_this.py'
     activate_venv = environment_path + activation_script_suffix
     execfile(activate_venv, dict(__file__=activate_venv))
