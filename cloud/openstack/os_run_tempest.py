@@ -6,10 +6,11 @@ import os
 DOCUMENTATION = '''
 ---
 module: os_run_tempest
-short_description: this module runs Tempest(OpenStack)
+short_description: this module runs Tempest (OpenStack)
 description:
     - run Tempest according to the configuration file in the workspace given
       and using python virtual environment if given.
+    - for more information about Tempest: http://docs.openstack.org/developer/tempest/
 author: "Tal Shafir , @TalShafir"
 requirements:
     - Tempest(and initialized workspace)
@@ -21,7 +22,7 @@ options:
         default: '/usr'
     workspace:
         description:
-            -the path of the workspace as was configured in 'Tempest init <workspace>'
+            -the workspace as was configured in 'Tempest init <workspace>'
         required: True
 '''
 
