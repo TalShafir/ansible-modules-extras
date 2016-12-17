@@ -2,6 +2,7 @@
 
 from ansible.module_utils.basic import *
 import os
+from cStringIO import StringIO
 
 DOCUMENTATION = '''
 ---
@@ -45,14 +46,34 @@ def main():
     if not module.params['workspace']:
         module.fail_json(msg='missing workspace argument')
 
-    command = 'tempest run --workspace ' + module.params['workspace']
+    try:
+        import tempest.cmd.main
+    except ImportError as e:
+        module.fail_json(msg="failed to import os_testr.subunit2html", error=str(e))
 
-    rc, stdout, stderr = module.run_command(command)
+    # save the original stdout and stderr
+    _stdout, _stderr = sys.stdout, sys.stderr
 
-    if rc == 0:  # TODO: check if rc!=0 in case of test/s fail or only if there are errors
-        module.exit_json(msg='tempest ran successfully', changed=True, stdout=stdout, stderr=stderr)
+    # replace stdout and stderr
+    sys.stdout, sys.stderr = StringIO(), StringIO()
+
+    # run tempest
+    try:
+        rc = tempest.cmd.main.main(['run', '--workspace', module.params['workspace']])
+    except:
+        rc = 1
+
+    # save tempest's stdout and stderr
+    tempest_stdout, tempest_stderr = sys.stdout, sys.stderr
+
+    # restore the original stdout and stderr
+    sys.stdout, sys.stderr = _stdout, _stderr
+
+    if rc == 0:
+        module.exit_json(out=tempest_stdout.getvalue(), err=tempest_stderr.getvalue())
     else:
-        module.fail_json(msg='tempest running failed', changed=True, stdout=stdout, stderr=stderr)
+        module.fail_json(msg="Tempest running has failed", out=tempest_stdout.getvalue(),
+                         err=tempest_stderr.getvalue())
 
 
 def activate_virtual_environment(environment_path):
