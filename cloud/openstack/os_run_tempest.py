@@ -40,8 +40,7 @@ def main():
     if not module.params['workspace']:
         module.fail_json(msg="missing Tempest workspace")
 
-    if module.params['virtualenv']:
-        activate_virtual_environment(os.path.abspath(os.path.expanduser(module.params['virtualenv'])))
+    activate_virtual_environment(os.path.abspath(os.path.expanduser(module.params['virtualenv'])))
 
     if not module.params['workspace']:
         module.fail_json(msg='missing workspace argument')
