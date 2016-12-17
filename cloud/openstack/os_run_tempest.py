@@ -17,7 +17,8 @@ requirements:
 options:
     virtualenv:
         description:
-            -path to the virtual environment Tempest is installed at
+            -path to the virtual environment Tempest is installed at,
+            if not provided will be assumed Tempest is installed in /usr/bin
         required: False
         default: ''
     workspace:
@@ -38,13 +39,10 @@ def main():
     if not module.params['workspace']:
         module.fail_json(msg="missing Tempest workspace")
 
-    if module.params['virtualenv'] != "":
+    if module.params['virtualenv']:
         activate_virtual_environment(os.path.abspath(os.path.expanduser(module.params['virtualenv'])))
 
-    # tempest_path = os.path.abspath(os.path.expanduser(module.params['virtualenv'] + '/bin/tempest'))
-
-    # command = tempest_path + ' run'
-    if not module.params['workspace'] or module.params['workspace'] == "":
+    if not module.params['workspace']:
         module.fail_json(msg='missing workspace argument')
 
     command = 'tempest run --workspace ' + module.params['workspace']
