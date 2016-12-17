@@ -29,6 +29,11 @@ options:
         required: False
         default: xml
         choices: [xml, html]
+    virtualenv:
+        description:
+            -path to the virtual environment ostestr is installed at
+        required: False
+        default: '/usr'
 
 '''
 EXAMPLES = ''' # TODO
@@ -39,21 +44,33 @@ def main():
     module = AnsibleModule(argument_spec={
         "results_path": {"type": "path", "required": True},
         "output_path": {"type": "path", "required": False},
-        "output_format": {"type": "string", "required": False, "default": "html", "choices": ["xml", "html"]}
+        "output_format": {"type": "string", "required": False, "default": "html", "choices": ["xml", "html"]},
+        "virtualenv": {"type": "path", "required": False, "default": ""}
     })
 
-    # activate_virtual_environment() TODO
+    if module.params['virtualenv']:
+        activate_virtual_environment(os.path.abspath(os.path.expanduser(module.params['virtualenv'])))
+
     if module.params['output_format'] == 'html':  # TODO handle directory instead of file as the output_path
-        import os_testr.subunit2html
-        _argv = sys.argv  # save original argv
-        sys.argv = [sys.argv[0], module.params['results_path'],
-                    module.params['output_path']]  # change argv to work with subunit2html
+        try:
+            import os_testr.subunit2html
+        except ImportError as e:
+            module.fail_json(msg="failed to import os_testr.subunit2html", error=str(e))
+
+        # save original argv
+        _argv = sys.argv
+
+        # change argv to work with subunit2html
+        sys.argv = [sys.argv[0], module.params['results_path'], module.params['output_path']]
         os_testr.subunit2html.main()
-        sys.argv = _argv  # restore the argv to the original
+
+        # restore the argv to the original
+        sys.argv = _argv
+
         module.exit_json(msg="html file was successfully created", output_path=module.params['output_path'])
 
     elif module.params['output_format'] == 'xml':
-        pass  # TODO
+        module.fail_json(msg="XML IS NOT SUPPORTED YET")
 
 
 def activate_virtual_environment(environment_path):
