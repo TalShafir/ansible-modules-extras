@@ -19,7 +19,7 @@ options:
         description:
             -path to the virtual environment Tempest is installed at
         required: False
-        default: '/usr'
+        default: ''
     workspace:
         description:
             -the workspace as was configured in 'Tempest init <workspace>'
@@ -29,7 +29,7 @@ options:
 
 def main():
     module = AnsibleModule(argument_spec={
-        "virtualenv": {"type": "path", "required": False, "default": "/usr"},
+        "virtualenv": {"type": "path", "required": False, "default": ""},
         "workspace": {"type": "path", "required": True}
     })
 
@@ -38,26 +38,23 @@ def main():
     if not module.params['workspace']:
         module.fail_json(msg="missing Tempest workspace")
 
-    if module.params['virtualenv'] != "/usr":
-        activate_virtual_environment(module.params['virtualenv'])
+    if module.params['virtualenv'] != "":
+        activate_virtual_environment(os.path.abspath(os.path.expanduser(module.params['virtualenv'])))
 
-    tempest_path = os.path.abspath(os.path.expanduser(module.params['virtualenv'] + '/bin/tempest'))
+    # tempest_path = os.path.abspath(os.path.expanduser(module.params['virtualenv'] + '/bin/tempest'))
 
-    command = tempest_path + ' run'
-    if module.params['workspace']:
-        command += ' --workspace ' + module.params['workspace']
-    else:
+    # command = tempest_path + ' run'
+    if not module.params['workspace'] or module.params['workspace'] == "":
         module.fail_json(msg='missing workspace argument')
+
+    command = 'tempest run --workspace ' + module.params['workspace']
 
     rc, stdout, stderr = module.run_command(command)
 
     if rc == 0:  # TODO: check if rc!=0 in case of test/s fail or only if there are errors
-        msg = 'tempest ran successfully'
-        module.exit_json(msg=msg, changed=True, stdout=stdout, stderr=stderr)
-
+        module.exit_json(msg='tempest ran successfully', changed=True, stdout=stdout, stderr=stderr)
     else:
-        msg = 'tempest running failed'
-        module.fail_json(msg=msg, changed=True, stdout=stdout, stderr=stderr)
+        module.fail_json(msg='tempest running failed', changed=True, stdout=stdout, stderr=stderr)
 
 
 def activate_virtual_environment(environment_path):
